@@ -4,7 +4,7 @@
 // The trivial pref plugin.
 // This prefers all nodes connected to the system.
 
-class PrefTrivial : public XrdCmsXmi
+class PrefDeny : public XrdCmsXmi
 {
 
 virtual int  Chmod (      XrdCmsReq      *,

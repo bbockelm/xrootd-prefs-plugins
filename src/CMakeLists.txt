@@ -1,4 +1,5 @@
 
 include_directories ( ${XROOTD_INCLUDES} )
-add_library (PrefTrivialXmi MODULE PrefTrivial.cc)
+add_library (PrefAllowXmi MODULE PrefAllow.cc)
+add_library (PrefDenyXmi MODULE PrefDeny.cc)
 
