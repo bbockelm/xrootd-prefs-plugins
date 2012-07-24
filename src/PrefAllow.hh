@@ -2,7 +2,7 @@
 #include "XrdCms/XrdCmsXmi.hh"
 
 // The trivial pref plugin.
-// This prefers all nodes connected to the system.
+// This prefers all nodes connected to the system equally.
 
 class PrefAllow : public XrdCmsXmi
 {

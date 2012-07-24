@@ -1,10 +1,10 @@
 
 #include "XrdCms/XrdCmsXmi.hh"
 
-// The trivial pref plugin.
-// This denies all nodes connected to the system.
+// A simple, silly plugin for testing preferences
+// This prefers the server in slot one, but will accept any others.
 
-class PrefDeny : public XrdCmsXmi
+class PrefOne : public XrdCmsXmi
 {
 
 virtual int  Chmod (      XrdCmsReq      *,
