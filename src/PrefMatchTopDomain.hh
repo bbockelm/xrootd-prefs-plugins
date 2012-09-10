@@ -18,6 +18,9 @@
 // preference mask accordingly.
 
 class PrefMatchTopDomain : public XrdCmsXmi{
+    
+    public:
+
     virtual int  Chmod (      XrdCmsReq      *,
                         mode_t          ,
                         const char           *,
@@ -72,20 +75,25 @@ class PrefMatchTopDomain : public XrdCmsXmi{
                          unsigned int &isDirect) // We only implement the "Pref" command.
     {isNormal = XMI_ALL-XMI_PREF; isDirect = XMI_ALL;}
     
-    private:
+    PrefMatchTopDomain(XrdCmsXmiEnv* env) : envinfo(env) {}
+    ~PrefMatchTopDomain() {}
     
     /*
      * Get the ipv4 address from the condensed ipv6 address structure
      "[::123.123.123.123]:1234"
      */
-    
-    void ExtractIpv4fromIpv6(char ip_addr[], const char * nodes_name);
+
+    static void ExtractIpv4fromIpv6(char ip_addr[], const char * nodes_name);
 
     /*
      * Simple string reverse utility
      */
+
+    static void StringReverse(char* original);
+
+    private:
     
-    void StringReverse(char* original);    
+    XrdCmsXmiEnv * envinfo;    
 };
     
 
