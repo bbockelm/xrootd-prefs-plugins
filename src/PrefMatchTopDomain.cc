@@ -30,7 +30,7 @@ void PrefMatchTopDomain::StringReverse(char* original){
     int i, j;
     for(i=0, j=strlen(original)-1; i<j; i++, j--){
         c = *(original+i);
-        *(orignial+i) = *(original+j);
+        *(original+i) = *(original+j);
         *(original+j) = c;
     }
     return;
@@ -64,7 +64,7 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
     StringReverse(client_host);
     
     // Debug Info
-    Info(XrdClientDebug::KUSERDEBUG, "PrefMatchTopDomain", "Break Point 1 Reached");
+    Info(XrdClientDebug::kUSERDEBUG, "PrefMatchTopDomain", "Break Point 1 Reached");
     
     // Get the number of segments of a host name (e.g. cse.unl.edu has 3 segments, which are seperated by two '.')
     int num_segment = 1;
