@@ -36,11 +36,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/libXrdSec*.so*
-%{_libdir}/libXrdCrypto*.so*
-%{_libdir}/libXrdUtils.so*
-%{_libdir}/libXrdMain.so*
-%{_libdir}/libXrdAppUtils.so*
+%{_libdir}/PrefXmi/libPrefAllowXmi.so
+%{_libdir}/PrefXmi/libPrefDenyXmi.so
+%{_libdir}/PrefXmi/libPrefMatchTopDomainXmi.so
 
 %changelog
 * Tue Sep 18 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.1-1
