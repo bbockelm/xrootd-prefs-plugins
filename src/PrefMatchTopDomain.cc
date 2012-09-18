@@ -14,12 +14,13 @@
 #include "XrdCms/XrdCmsPrefNodes.hh"
 #include "XrdOuc/XrdOucEnv.hh"
 #include "XrdSys/XrdSysDNS.hh"
-#include "XrdClient/XrdClientDebug.hh"
+#include "XrdSys/XrdSysError.hh"
+#include "XrdSys/XrdSysLogger.hh"
 
 extern "C" {
 
-    XrdCmsXmi *XrdCmsgetXmi(int, char **, XrdCmsXmiEnv *){
-        return new PrefMatchTopDomain();
+    XrdCmsXmi *XrdCmsgetXmi(int, char **, XrdCmsXmiEnv * env){
+        return new PrefMatchTopDomain(env);
     }
 }
 
@@ -42,7 +43,7 @@ void PrefMatchTopDomain::ExtractIpv4fromIpv6(char ip_addr[], const char * nodes_
     
     int offset = 3;
     int index = 0;
-    while (*(nodes_name+index+offset) != ']') {
+    while (*(nodes_name+index+offset) != ']'&& *(nodes_name+index+offset) != '\0') {
         ip_addr[index] = *(nodes_name+index+offset);
         index ++;
     }
@@ -51,6 +52,8 @@ void PrefMatchTopDomain::ExtractIpv4fromIpv6(char ip_addr[], const char * nodes_
 
 
 int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref & pref, XrdCmsPrefNodes& nodes){
+    
+    XrdSysError *eDest = envinfo-> eDest;
 
     const char * nodes_name;
     char * nodes_host;
@@ -60,11 +63,11 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
     // Get the hostname of the client who sends the request
     XrdOucEnv env(opaque);
     char *client_host = env.Get("client_host");
+    eDest->Emsg("PrefMatchTopDomain", "client host name is:", client_host);
     int client_host_length = strlen(client_host);
     StringReverse(client_host);
-    
-    // Debug Info
-    Info(XrdClientDebug::kUSERDEBUG, "PrefMatchTopDomain", "Break Point 1 Reached");
+     
+    eDest->Emsg("PrefMatchTopDomain", "The client host name after string reverse is:", client_host);
     
     // Get the number of segments of a host name (e.g. cse.unl.edu has 3 segments, which are seperated by two '.')
     int num_segment = 1;
@@ -75,9 +78,13 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
         }
         index ++;
     }
-    
-    std::cout << "Break Point 1 reached!" << endl;
-    
+
+    // num_segment_char here is only used for debug purpose, which hold the number of segments, assume number of segment is < 10
+    char num_segment_char[2];
+    num_segment_char[0] = num_segment + '0';
+    num_segment_char[1] = '\0';
+    eDest->Emsg("PrefMatchTopDomain", "The number of segments for the client host name is:", num_segment_char);
+        
     // Calculate the actual level of preferences beyond Pref 0 based on the number of segments in the client host name
     int actual_levels = (MAX_PREF_LEVELS-1 >= num_segment) ? num_segment : MAX_PREF_LEVELS-1;
     
@@ -97,17 +104,21 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
         }
         *(partial_client_host+index) = '\0';
         strcpy(partial_client_host_array[i-1], partial_client_host);
+        eDest->Emsg("PrefMatchTopDomain", "partial client host name is:", partial_client_host_array[i-1]);
     }
-    
-    std::cout << "Break Point 2 reached!" << std::endl;
-        
+            
     // Match the partial_client_host with the server nodes' host name
     for (unsigned int i = 0; i < XRD_MAX_NODES; i++) {
-        if((nodes_name = nodes.GetNodeName(i))){
+        // Add the condition check *nodes_name == '[', since valid ipv6 address should start with '['
+        if((nodes_name = nodes.GetNodeName(i)) &&(*nodes_name == '[')){
+            eDest->Emsg("PrefMatchTopDomain", "IPV6 address is:", nodes_name);
             char ip_addr[16];
             ExtractIpv4fromIpv6(ip_addr, nodes_name);
+            eDest->Emsg("PrefMatchTopDomain", "the converted IPV4 address is:", ip_addr);
             nodes_host = XrdSysDNS::getHostName(ip_addr);
+            eDest->Emsg("PrefMatchTopDomain", "the converted host name for the data server is:", nodes_host);
             StringReverse(nodes_host);
+            eDest->Emsg("PrefMatchTopDomain", "the reversed data server host name is:", nodes_host);
             for (int j = 1; j <= actual_levels; j++) {
                 if (strstr(nodes_host, partial_client_host_array[j-1]) == nodes_host) {
                     mask[j] |= 1 << i;
@@ -116,9 +127,7 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
             
         }
     }
-    
-    std::cout << "Break Point 3 reached!" << std::endl;
-    
+        
     // Set the preference mask at different levels
     for (int i = 0; i < MAX_PREF_LEVELS; i++) {
         pref.SetPreference(i, mask[i]);
