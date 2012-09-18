@@ -4,6 +4,8 @@ project (xrootd-prefs-plugins)
 
 set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 
+include( GNUInstallDirs )
+
 find_package( Xrootd REQUIRED )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
